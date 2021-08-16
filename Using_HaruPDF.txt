@@ -1,0 +1,137 @@
+Using Haru PDF
+
+When using the Haru PDF API, it requires the programmer to call API functions in
+the correct order.  Failure to do this, can result in error codes being returned
+or (in some cases) the API crashing.  The error codes are described in
+hpdf_error.def, but documentation on what generates the error codes is
+non-existent.
+
+The following are code examples of how to perform some of the common tasks and
+execute the Haru PDF API methods in an appropriate order.
+
+Draw Text
+
+	data aText,	a*, "Continues..."
+	data hPos,	float
+	data vPos,	float
+
+	aPdfPage.BeginText()
+	aPdfPage.MoveTextPos(hPos, vPos)
+	aPdfPage.ShowText(aText)
+	aPdfPage.EndText()
+
+If you have multiple text string to display, you do not need to repeat the
+BeginText / EndText method calls for each text string.
+
+Draw Text, overriding font and color
+
+	data aText,	a*, "Continues..."
+	data text_font,	@HpdfFont
+	data textWidth,	float
+	data hPos,	float
+	data vPos,	float
+	data cRed,	float
+	data cGreen,	float
+	data cBlue,	float
+
+	aPdfPage.GSave()
+	text_font = aPdfDoc.GetFont("Helvetica", ^null)
+	aPdfPage.SetFontAndSize(text_font, 12.0)
+	aPdfPage.BeginText()
+	textWidth = aPdfPage.TextWidth(aText)
+	aPdfPage.MoveTextPos(hPos, vPos)
+	aPdfPage.SetRGBFill(cRed, cGreen, cBlue)
+	aPdfPage.ShowText(aText)
+	aPdfPage.EndText()
+
+In this example, because we are temporarily overriding several graphical
+settings, the GSave / GRestore methods are used to save and restore the
+graphical state of the PDF page.
+
+Draw Rectangle
+
+	data hPos,	float
+	data vPos,	float
+	data hLen,	float
+	data vLen,	float
+	data lWidth,	float
+
+	aPdfPage.SetLineWidth(lWidth)
+	aPdfPage.Rectangle(hPos, vPos, hLen, vLen)
+	aPdfPage.Stroke()
+
+Draw Rectangle, fill with a color and make the rectangle border the same color
+
+	data hPos,	float
+	data vPos,	float
+	data hLen,	float
+	data vLen,	float
+	data lWidth,	float
+	data cRed,	float
+	data cGreen,	float
+	data cBlue,	float
+
+	aPdfPage.SetLineWidth(lWidth)
+	aPdfPage.SetRGBStroke(cRed, cGreen, cBlue)
+	aPdfPage.SetRGBFill(cRed, cGreen, cBlue)
+ 	aPdfPage.Rectangle(hPos, vPos, hLen, vLen)
+	aPdfPage.FillStroke()
+
+Draw Line
+
+	data hPos,	float
+	data vPos,	float
+	data hPos2,	float
+	data vPos2,	float
+
+	aPdfPage.MoveTo(hPos, vPos)
+	aPdfPage.LineTo(hPos2, vPos2)
+	aPdfPage.Stroke()
+
+Draw Image
+
+	data pdfImage,	@HPdfImage
+	data hPos,	float
+	data vPos,	float
+	data hLen,	float
+	data vLen,	float
+	data pgnFileName, string
+
+	pdfImage = aPdfDoc.LoadPngImageFromFile(pngFileName)
+	aPdfPage.DrawImage(pdfImage, hPos, vPos, hLen, vLen)
+
+Write Line
+
+	data aText,	string, "Another Line"
+
+	aPdfPage.Writes(aText)
+
+In this example, we are using a Synergex helper method to do the equivalent
+of a Synergy WRITES function.  The text is written out at the current position
+and the position is updated to be at the left margin moved down the page by
+the height of the current font.
+
+Discussion
+
+When specifying line width, color, font, etc. on a page, you only need to
+specify the item once, and the setting is remembered for the entire page, or
+until you set the item value to a new value.
+
+When positioning items on a page that have height & width, the positioning
+refers to the position of the bottom left corner of the item.
+
+In the above examples only the data types are provided, you need to populate
+the appropriate values.
+
+aPdfPage is defined as a @HPdfPage object.
+
+hPos/vPos variables are absolution positions on the page.
+
+hLen/vLen variables are relative offsets from a previously specified absolution
+position.
+
+Colors (cRed, cGreen, cBlue) are a number between 0.0 and 1.0, indicating how
+much of the color should be used.  White would have all three set to 1.0, and
+black would have all three set to 0.0.
+
+The page sizes are in number of dots and are based on 72 dots per inch.
