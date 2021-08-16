@@ -1,0 +1,203 @@
+import System
+.ifdef dblnet
+import System.IO
+.endc
+import HPdf
+
+namespace TextDemo
+
+public class TextDemo
+
+;   private static rand, @Random
+
+    private static method PrintPage, void
+        page, @HPdfPage 
+        caption, string 
+        font, @HPdfFont 
+        type, HPdfTransitionStyle 
+        prev, @HPdfPage 
+        next, @HPdfPage 
+        endparams
+    external function
+	rand, d
+    proc
+        begin
+            data r, float; ((float)rand.Next(255) / 255)
+            data g, float; ((float)rand.Next(255) / 255)
+            data b, float; ((float)rand.Next(255) / 255)
+            data rect, HPdfRect
+            data dst, @HPdfDestination
+            data annot, @HPdfAnnotation
+            r = %rand(0, 255) / 255.0
+            g = %rand(0, 255) / 255.0
+            b = %rand(0, 255) / 255.0
+            page.SetWidth(800)
+            page.SetHeight(600)
+            page.SetRGBFill(r, g, b)
+            page.Rectangle(0, 0, 800, 600)
+            page.Fill()
+            page.SetRGBFill((1 - r), (1 - g), (1 - b))
+            page.SetFontAndSize(font, 30)
+            page.BeginText()
+            page.SetTextMatrix(0.8, 0, 0, 1, 0, 0)
+            page.TextOut(50, 530, caption)
+            page.SetTextMatrix(1, 0, 0, 1, 0, 0)
+            page.SetFontAndSize(font, 20)
+            page.TextOut(55, 300, "Type ""Ctrl+L"" in order to return from full screen mode.")
+            page.EndText()
+            page.SetSlideShow(type, 5, 1)
+            page.SetFontAndSize(font, 20)
+            if ((next != ^null))
+            begin
+		data z1, float, 0
+		data z2, short, 0
+                page.BeginText()
+                page.TextOut(680, 50, "Next=>")
+                page.EndText()
+                rect.left = 680
+                rect.right = 750
+                rect.top = 70
+                rect.bottom = 50
+                dst = next.CreateDestination()
+                dst.SetFit()
+                annot = page.CreateLinkAnnot(rect, dst)
+;               annot.SetBorderStyle(0, 0, 0)
+                annot.SetBorderStyle(z1, z2, z2)
+                annot.SetHighlightMode(HPdfAnnotHighlightMode.HPDF_ANNOT_INVERT_BOX)
+            end
+            if ((prev != ^null))
+            begin
+		data z1, float, 0
+		data z2, short, 0
+                page.BeginText()
+                page.TextOut(50, 50, "<=Prev")
+                page.EndText()
+                rect.left = 50
+                rect.right = 110
+                rect.top = 70
+                rect.bottom = 50
+                dst = prev.CreateDestination()
+                dst.SetFit()
+                annot = page.CreateLinkAnnot(rect, dst)
+;               annot.SetBorderStyle(0, 0, 0)
+                annot.SetBorderStyle(z1, z2, z2)
+                annot.SetHighlightMode(HPdfAnnotHighlightMode.HPDF_ANNOT_INVERT_BOX)
+            end
+        end
+    endmethod
+
+    public static method Main, void
+        endparams
+    proc
+        begin
+            writes(15,("libhpdf-" + HPdfDoc.HPdfGetVersion()))
+;           rand = new Random()
+            try
+            begin
+                data pdf, @HPdfDoc, new HPdfDoc()
+                data page, [#]@HPdfPage, new HPdfPage[17] 
+                data font, @HPdfFont, pdf.GetFont("Courier", ^null)
+                page[1] = pdf.AddPage()
+                page[2] = pdf.AddPage()
+                page[3] = pdf.AddPage()
+                page[4] = pdf.AddPage()
+                page[5] = pdf.AddPage()
+                page[6] = pdf.AddPage()
+                page[7] = pdf.AddPage()
+                page[8] = pdf.AddPage()
+                page[9] = pdf.AddPage()
+                page[10] = pdf.AddPage()
+                page[11] = pdf.AddPage()
+                page[12] = pdf.AddPage()
+                page[13] = pdf.AddPage()
+                page[14] = pdf.AddPage()
+                page[15] = pdf.AddPage()
+                page[16] = pdf.AddPage()
+                page[17] = pdf.AddPage()
+                PrintPage(page[1], "HPDF_TS_WIPE_RIGHT", font, HPdfTransitionStyle.HPDF_TS_WIPE_RIGHT, ^null, page[2])
+                PrintPage(page[2], "HPDF_TS_WIPE_UP", font, HPdfTransitionStyle.HPDF_TS_WIPE_UP, page[1], page[3])
+                PrintPage(page[3], "HPDF_TS_WIPE_LEFT", font, HPdfTransitionStyle.HPDF_TS_WIPE_LEFT, page[2], page[4])
+                PrintPage(page[4], "HPDF_TS_WIPE_DOWN", font, HPdfTransitionStyle.HPDF_TS_WIPE_DOWN, page[3], page[5])
+                PrintPage(page[5], "HPDF_TS_BARN_DOORS_HORIZONTAL_OUT", font, HPdfTransitionStyle.HPDF_TS_BARN_DOORS_HOR_OUT, page[4], page[6])
+                PrintPage(page[6], "HPDF_TS_BARN_DOORS_HORIZONTAL_IN", font, HPdfTransitionStyle.HPDF_TS_BARN_DOORS_HOR_IN, page[5], page[7])
+                PrintPage(page[7], "HPDF_TS_BARN_DOORS_VERTICAL_OUT", font, HPdfTransitionStyle.HPDF_TS_BARN_DOORS_VERT_OUT, page[6], page[8])
+                PrintPage(page[8], "HPDF_TS_BARN_DOORS_VERTICAL_IN", font, HPdfTransitionStyle.HPDF_TS_BARN_DOORS_VERT_IN, page[7], page[9])
+                PrintPage(page[9], "HPDF_TS_BOX_OUT", font, HPdfTransitionStyle.HPDF_TS_BOX_OUT, page[8], page[10])
+                PrintPage(page[10], "HPDF_TS_BOX_IN", font, HPdfTransitionStyle.HPDF_TS_BOX_IN, page[9], page[11])
+                PrintPage(page[11], "HPDF_TS_BLINDS_HORIZONTAL", font, HPdfTransitionStyle.HPDF_TS_BLINDS_HORIZONTAL, page[10], page[12])
+                PrintPage(page[12], "HPDF_TS_BLINDS_VERTICAL", font, HPdfTransitionStyle.HPDF_TS_BLINDS_VERTICAL, page[11], page[13])
+                PrintPage(page[13], "HPDF_TS_DISSOLVE", font, HPdfTransitionStyle.HPDF_TS_DISSOLVE, page[12], page[14])
+                PrintPage(page[14], "HPDF_TS_GLITTER_RIGHT", font, HPdfTransitionStyle.HPDF_TS_GLITTER_RIGHT, page[13], page[15])
+                PrintPage(page[15], "HPDF_TS_GLITTER_DOWN", font, HPdfTransitionStyle.HPDF_TS_GLITTER_DOWN, page[14], page[16])
+                PrintPage(page[16], "HPDF_TS_GLITTER_TOP_LEFT_TO_BOTTOM_RIGHT", font, HPdfTransitionStyle.HPDF_TS_GL_TOP_LEFT_TBOT_RT, page[15], page[17])
+                PrintPage(page[17], "HPDF_TS_REPLACE", font, HPdfTransitionStyle.HPDF_TS_REPLACE, page[16], ^null)
+                pdf.SetPageMode(HPdfPageMode.HPDF_PAGE_MODE_FULL_SCREEN)
+                pdf.SaveToFile("SlideShowDemo.pdf")
+            end
+            catch (e, @Exception)
+            begin
+                writes(15,e.Message)
+            end
+            endtry
+        end
+    endmethod
+endclass
+endnamespace
+function rand, d
+        low,            d               ;Lowest value wanted
+        high,           d               ;Highest value wanted
+global data section seeds, init
+record aseed
+        sd1,            d5
+        sd2,            d5
+endglobal
+record
+        rand,           d5
+        rnd,            d5              ;Random number returned
+        nums,           d5
+        bounds,         d5
+.proc
+        xcall randm(rand, sd1, sd2)
+        nums = high - low + 1
+        rnd = rand - ((rand / nums) * nums) + low
+        freturn(rnd)
+.end
+subroutine setseed
+global data section seeds
+record aseed
+        sd1,            d5
+        sd2,            d5
+endglobal
+record atime
+        settime,         d6
+.proc
+        settime = 123159;xcall time(settime)
+        sd1 = settime / 4
+        sd2 = settime(5, 6) * 70 + settime(1, 4)
+        return
+.end
+;; 
+;;  * << Haru Free PDF Library 2.0.5 >> -- SlideShow.cs
+;;  *
+;;  * Copyright (c) 1999-2006 Takeshi Kanno <takeshi_kanno@est.hi-ho.ne.jp>
+;;  *
+;;  * Permission to use, copy, modify, distribute and sell this software
+;;  * and its documentation for any purpose is hereby granted without fee,
+;;  * provided that the above copyright notice appear in all copies and
+;;  * that both that copyright notice and this permission notice appear
+;;  * in supporting documentation.
+;;  * It is provided "as is" without express or implied warranty.
+;;  *
+;;  */
+;;  create default-font */
+;;  Add 17 pages to the document. */
+;;  save the document to a file */
+
+.main
+;record
+;	hnd,	@TextDemo
+.proc
+	xcall setseed
+	open(15,o,'tt:')
+	TextDemo.Main()
+.end

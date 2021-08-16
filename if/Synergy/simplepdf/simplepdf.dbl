@@ -1,0 +1,64 @@
+
+import HPdf
+
+main
+record
+    pdf,	@HpdfDoc
+    font,	@hpdfFont
+    page,	@hpdfPage
+    image,	@HPdfImage
+    pageheight,	float
+    pagewidth,	float
+.define DPI 10.0
+    i,	float
+proc
+    try
+    begin
+	;create a new document
+	pdf = new HPdfDOc()
+	;    pdf.SetPageMode(HPdfPageMode.HPDf_PAGE_MODE_USE_OUTLINE)
+	;get a font Object ToString write with
+	font = pdf.GetFont("Helvetica",^NULL)
+	;Load our image
+	image = pdf.LoadJpegImageFromFile("gray.jpg")
+	;Setup and add page 1
+	page = pdf.AddPagePortraitA4(pageheight, pagewidth);
+	; draw our image at the middle of the page
+	begin
+	    data pwidth, float
+	    data pheight, float
+	    pwidth = image.GetWidth()
+	    pheight = image.GetHeight()
+	    page.DrawImage (image, 100.0, (pageheight/dpi/2.0), pwidth, pheight)
+	end
+	;start a text writer with the font and DPI required
+	page.StartPageWithFont(font,DPI)
+	;write lines of text sequentially
+	for i from 1.0 thru pageheight/dpi
+	    Page.Writes((STRING)("some Text line "+%string(%integer(i))))
+	;close this page off
+	page.EndText()
+	;page 1
+	;repeat again no image
+	page = pdf.AddPagePortraitA4(pageheight, pagewidth)
+	page.StartPageWithFont(font, (float)DPI)
+	for i from 1.0 thru pageheight/dpi
+	    Page.Writes((STRING)("some Text line "+%string(%integer(i))))
+	page.EndText()
+	;
+	pdf.SaveToFile("simplepdf.pdf")
+	clear pdf
+	clear font
+    end
+    catch (e, @Exception)
+    begin
+    .ifdef dblnet
+	Console.Error.WriteLine(e.Message)
+    .else
+	open(15,o,'tt:')
+	writes(15,e.message)
+	CLOSE 15
+    .endc
+    end
+    endtry
+endmain

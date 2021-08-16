@@ -1,0 +1,339 @@
+import System
+.ifdef dblnet
+import System.IO
+.endc
+import HPdf
+
+namespace TextDemo
+
+public class TextDemo
+
+    private static method ShowStripePattern, void
+        in page, @HPdfPage
+        in x, float
+        in y, float
+        endparams
+    proc
+        begin
+            data iy, int, 0
+            while (iy < 50) do
+            begin
+                page.SetRGBStroke(0, 0, 0.5)
+                page.SetLineWidth(1)
+                page.MoveTo(x, (y + iy))
+                page.LineTo((x + page.TextWidth("ABCabc123")), (y + iy))
+                page.Stroke()
+                iy += 3
+            end
+            page.SetLineWidth(2.5)
+        end
+    endmethod
+
+    private static method ShowDescription, void
+        in page, @HPdfPage
+        in x, float
+        in y, float
+        in text, string
+        endparams
+    proc
+	begin
+	    data fsize, float, page.GetCurrentFontSize()
+	    data font, @HPdfFont, page.GetCurrentFont()
+	    data c, HPdfRGBColor, page.GetRGBFill()
+	    page.BeginText()
+	    page.SetRGBFill(0, 0, 0)
+	    page.SetTextRenderingMode(HPdfTextRenderingMode.HPDF_FILL)
+	    page.SetFontAndSize(font, 10)
+	    page.TextOut(x, (y - 12), text)
+	    page.EndText()
+	    page.SetFontAndSize(font, fsize)
+	    page.SetRGBFill(c.r, c.g, c.b)
+	end
+    endmethod
+
+    public static method Main, void
+        endparams
+    proc
+        begin
+            data page_title, string
+            data samp_text, string
+            data samp_text2, string
+
+	    page_title = "Text DEmo"
+            samp_text = "abcdefgABCDEFG123!#$%&+-@?"
+            samp_text2 = "The quick brown fox jumps over the lazy dog."
+            writes(15,"libhpdf-" + HPdfDoc.HPdfGetVersion())
+.ifdef DBLNET
+            try
+.endc
+            begin
+                data pdf, @HPdfDoc
+                data font, @HPdfFont
+                data page, @HPdfPage
+                data tw, float
+                data fsize, float, 8
+                data len, int
+                data i, int
+                data ypos, float, 450
+                data angle1, float, 30
+                 data angle2, float, 20
+                 data rad1, float
+                 data rad2, float
+data tan1, float
+data tan2, float
+data cos1, float
+data sin1, float
+.ifndef dblnet
+data fnum, a8
+data rslt, a8
+.endc
+		rad1 = angle1 / 180 * 3.141592
+		rad2 = angle2 / 180 * 3.141592
+                pdf = new HPdfDoc()
+                font = pdf.GetFont("Helvetica", ^null)
+                page = pdf.AddPage()
+                page.SetFontAndSize(font, 24)
+                tw =  page.TextWidth(page_title)
+                page.BeginText()
+                page.TextOut(((page.GetWidth() - tw) / 2), (page.GetHeight() - 50), page_title)
+                page.EndText()
+                page.BeginText()
+                page.MoveTextPos(60, (page.GetHeight() - 60))
+                while ((fsize < 60)) do
+                begin
+                    data tlen, int
+                    page.SetFontAndSize(font, fsize)
+                    page.MoveTextPos(0, (-5 - fsize))
+                    tlen = page.MeasureText(samp_text, (page.GetWidth() - 120), false)
+                    page.ShowText(samp_text(1,tlen))
+                    page.MoveTextPos(0, -10)
+                    page.SetFontAndSize(font, 8)
+                    page.ShowText(("Fontsize=" + %string(fsize)))
+                    fsize *= 1.5
+                end
+                page.SetFontAndSize(font, 8)
+                page.MoveTextPos(0, -30)
+                page.ShowText("Font color")
+                page.SetFontAndSize(font, 18)
+                page.MoveTextPos(0, -20)
+                len= samp_text.Length
+                for i from 1 thru len
+                begin
+                    data rr, float
+                    data gg, float
+                    rr =  (i-1)// len
+                    gg =  1.0 - ((i-1) // len)
+                    page.SetRGBFill(rr, gg, 0)
+                    page.ShowText(samp_text(i:1))
+                end
+                page.MoveTextPos(0, -25)
+                for i from 1 thru len
+                begin
+                    data rr1, float
+                    data bb, float
+                    rr1 =  (i-1) // len
+                    bb =  1.0 - ((i-1) // len)
+                    page.SetRGBFill(rr1, 0, bb)
+                    page.ShowText(samp_text(i:1))
+                end
+                page.MoveTextPos(0, -25)
+
+                for i from 1 thru len
+                begin
+                    data bb1, float
+                    data gg1, float
+		    bb1 = (i-1) // len
+		    gg1 = 1.0 - ((i-1) //len)
+		    page.SetRGBFill(0, gg1, bb1)
+                    page.ShowText(samp_text(i:1))
+                end
+                page.EndText()
+
+                page.SetFontAndSize(font, 32)
+                page.SetRGBFill(0.5, 0.5, 0)
+                page.SetLineWidth(1.5)
+                ShowDescription(page, 60.0, ypos, "RenderingMode=PDF_FILL")
+                page.SetTextRenderingMode(HPdfTextRenderingMode.HPDF_FILL)
+                page.BeginText()
+                page.TextOut(60, ypos, "ABCabc123")
+                page.EndText()
+                ShowDescription(page, 60.0, (ypos - 50), "RenderingMode=PDF_STROKE")
+                page.SetTextRenderingMode(HPdfTextRenderingMode.HPDF_STROKE)
+                page.BeginText()
+                page.TextOut(60, (ypos - 50.0), "ABCabc123")
+                page.EndText()
+                ShowDescription(page, 60.0, (ypos - 100.0), "RenderingMode=PDF_FILL_THEN_STROKE")
+                page.SetTextRenderingMode(HPdfTextRenderingMode.HPDF_FILL_THEN_STROKE)
+                page.BeginText()
+                page.TextOut(60.0, (ypos - 100.0), "ABCabc123")
+                page.EndText()
+                ShowDescription(page, 60.0, (ypos - 150.0), "RenderingMode=PDF_FILL_CLIPPING")
+                page.GSave()
+                page.SetTextRenderingMode(HPdfTextRenderingMode.HPDF_FILL_CLIPPING)
+                page.BeginText()
+                page.TextOut(60.0, (ypos - 150.0), "ABCabc123")
+                page.EndText()
+                ShowStripePattern(page, 60.0, (ypos - 150.0))
+                page.GRestore()
+                ShowDescription(page, 60.0, (ypos - 200.0), "RenderingMode=PDF_STROKE_CLIPPING")
+                page.GSave()
+                page.SetTextRenderingMode(HPdfTextRenderingMode.HPDF_STROKE_CLIPPING)
+                page.BeginText()
+                page.TextOut(60.0, (ypos - 200.0), "ABCabc123")
+                page.EndText()
+                ShowStripePattern(page, 60.0, (ypos - 200.0))
+                page.GRestore()
+                ShowDescription(page, 60.0, (ypos - 250.0), "RenderingMode=PDF_FILL_STROKE_CLIPPING")
+                page.GSave()
+                page.SetTextRenderingMode(HPdfTextRenderingMode.HPDF_FILL_STROKE_CLIPPING)
+                page.BeginText()
+                page.TextOut(60.0, (ypos - 250.0), "ABCabc123")
+                page.EndText()
+                ShowStripePattern(page, 60.0, (ypos - 250.0))
+                page.GRestore()
+                page.SetTextRenderingMode(HPdfTextRenderingMode.HPDF_FILL)
+                page.SetRGBFill(0, 0, 0)
+                page.SetFontAndSize(font, 30)
+
+                ShowDescription(page, 320, (ypos - 60), "Rotating text")
+                page.BeginText()
+.ifndef DBLNET
+xcall fp_from_num(fnum, rad1)
+xcall fp_cos(rslt, fnum)
+xcall fp_to_num(rslt, cos1)
+xcall fp_from_num(fnum, rad1)
+xcall fp_sin(rslt, fnum)
+xcall fp_to_num(rslt, sin1)
+.else
+cos1 = Math.Cos(rad1)
+sin1 = Math.Sin(rad1)
+.endc
+                page.SetTextMatrix(cos1, sin1, -sin1, cos1, 330, (ypos - 60))
+;;		page.SetTextMatrix((float)Math.Cos(rad1), (float)Math.Sin(rad1), -(float)Math.Sin(rad1), (float)Math.Cos(rad1), 330, (ypos - 60))
+                page.ShowText("ABCabc123")
+                page.EndText()
+                ShowDescription(page, 320, (ypos - 120), "Skewing text")
+                page.BeginText()
+                angle1 = 10
+
+                rad1 = ((angle1 / 180) * 3.141592)
+.ifndef DBLNET
+xcall fp_from_num(fnum, rad1)
+xcall fp_tan(rslt, fnum)
+xcall fp_to_num(rslt, tan1)
+xcall fp_from_num(fnum, rad2)
+xcall fp_tan(rslt, fnum)
+xcall fp_to_num(rslt, tan2)
+.else
+tan1 = Math.Tan(rad1)
+tan2 = Math.Tan(rad2)
+.endc
+		page.SetTextMatrix(1, tan1, tan2, 1, 320, (ypos - 120))
+;;		page.SetTextMatrix(1, (float)Math.Tan(rad1), (float)Math.Tan(rad2), 1, 320, (ypos - 120))
+                page.ShowText("ABCabc123")
+                page.EndText()
+
+                ShowDescription(page, 320, (ypos - 175), "Scaling text (X direction)")
+                page.BeginText()
+                page.SetTextMatrix(1.5, 0, 0, 1, 320, (ypos - 175))
+                page.ShowText("ABCabc12")
+                page.EndText()
+                ShowDescription(page, 320, (ypos - 250), "Scaling text (Y direction)")
+                page.BeginText()
+                page.SetTextMatrix(1, 0, 0, 2, 320, (ypos - 250))
+                page.ShowText("ABCabc123")
+                page.EndText()
+                ShowDescription(page, 60, 140, "char-spacing 0")
+                ShowDescription(page, 60, 100, "char-spacing 1.5")
+                ShowDescription(page, 60, 60, "char-spacing 1.5, word-spacing 2.5")
+                page.SetFontAndSize(font, 20)
+                page.SetRGBFill(0.1, 0.3, 0.1)
+                page.BeginText()
+                page.TextOut(60, 140, samp_text2)
+                page.EndText()
+                page.SetCharSpace(1.5)
+                page.BeginText()
+                page.TextOut(60, 100, samp_text2)
+                page.EndText()
+                page.SetWordSpace(2.5)
+                page.BeginText()
+                page.TextOut(60, 60, samp_text2)
+                page.EndText()
+                pdf.SaveToFile("TextDemo.pdf")
+            end
+.ifdef DBLNET
+            catch (e, @Exception)
+            begin
+                writes(15,e.Message)
+            end
+            endtry
+.endc
+        end
+    endmethod
+endclass
+endnamespace
+;;
+;;  * << Haru Free PDF Library 2.0.5 >> -- TextDemo.cs
+;;  *
+;;  * Copyright (c) 1999-2006 Takeshi Kanno <takeshi_kanno@est.hi-ho.ne.jp>
+;;  *
+;;  * Permission to use, copy, modify, distribute and sell this software
+;;  * and its documentation for any purpose is hereby granted without fee,
+;;  * provided that the above copyright notice appear in all copies and
+;;  * that both that copyright notice and this permission notice appear
+;;  * in supporting documentation.
+;;  * It is provided "as is" without express or implied warranty.
+;;  *
+;;  */
+;;  create default-font */
+;;  add a new page object. */
+;; print the title of the page (with positioning center). */
+;;
+;;              * font size
+;;              */
+;;  set style and size of font. */
+;;  set the position of the text. */
+;;  measure the number of characters which included in the page. */
+;;  print the description. */
+;;
+;;              * font color
+;;              */
+;;
+;;              * Font rendering mode
+;;              */
+;;  PDF_FILL */
+;; PDF_STROKE */
+;; PDF_FILL_THEN_STROKE */
+;; PDF_FILL_CLIPPING */
+;; PDF_STROKE_CLIPPING */
+;; PDF_FILL_STROKE_CLIPPING */
+;; Reset text attributes */
+;;
+;;              * Rotating text
+;;              */
+;;  A rotation of 30 degrees. */
+;;  Calcurate the radian value. */
+;;
+;;              * Skewing text.
+;;              */
+;;
+;;              * scaling text (X direction)
+;;              */
+;;
+;;              * scaling text (Y direction)
+;;              */
+;;
+;;              * char spacing, word spacing
+;;              */
+;; char-spacing 0 */
+;; char-spacing 1.5 */
+;; char-spacing 1.5, word-spacing 3.5 */
+;;  save the document to a file */
+
+.main
+;record
+;	hnd,	@TextDemo
+.proc
+	open(15,o,'tt:')
+	TextDemo.Main()
+.end
