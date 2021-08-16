@@ -1,0 +1,66 @@
+import System
+.ifdef dblnet
+import System.IO
+.endc
+import HPdf
+
+namespace Encryption
+
+public class Encryption
+
+    public static method Main, void
+        endparams
+    proc
+        begin
+            data owner_passwd, string, "owner"
+            data user_passwd, string, "user"
+            data text, string, "This is an encrypt document example."
+            writes(15,("libhpdf-" + HPdfDoc.HPdfGetVersion()))
+            try
+            begin
+                data pdf, @HPdfDoc, new HPdfDoc()
+                data font, @HPdfFont, pdf.GetFont("Helvetica", ^null)
+                data page, @HPdfPage, pdf.AddPage()
+                data tw, float
+                page.SetSize(HPdfPageSizes.HPDF_PAGE_SIZE_B5, HPdfPageDirection.HPDF_PAGE_LANDSCAPE)
+                page.BeginText()
+                page.SetFontAndSize(font, 20)
+                tw = page.TextWidth(text)
+                page.MoveTextPos((((page.GetWidth() - tw)) / 2), (((page.GetHeight() - 20)) / 2))
+                page.ShowText(text)
+                page.EndText()
+                pdf.SetPassword(owner_passwd, user_passwd)
+                pdf.SaveToFile("Encryption.pdf")
+            end
+            catch (e, @Exception)
+            begin
+                writes(15,e.Message)
+		stop
+            end
+            endtry
+        end
+    endmethod
+endclass
+endnamespace
+;; 
+;;  * << Haru Free PDF Library 2.0.5 >> -- Encryption.cs
+;;  *
+;;  * Copyright (c) 1999-2006 Takeshi Kanno <takeshi_kanno@est.hi-ho.ne.jp>
+;;  *
+;;  * Permission to use, copy, modify, distribute and sell this software
+;;  * and its documentation for any purpose is hereby granted without fee,
+;;  * provided that the above copyright notice appear in all copies and
+;;  * that both that copyright notice and this permission notice appear
+;;  * in supporting documentation.
+;;  * It is provided "as is" without express or implied warranty.
+;;  *
+;;  */
+;;  create default-font */
+;;  add a new page object. */
+;;  save the document to a file */
+
+.main
+.proc
+	open(15,o,'tt:')
+	Encryption.Main()
+.end

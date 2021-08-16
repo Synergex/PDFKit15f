@@ -1,0 +1,242 @@
+import System
+.ifdef dblnet
+import System.IO
+.endc
+import HPdf
+
+namespace ImageDemo
+
+public class ImageDemo
+
+    private static method ShowDescription, void
+        page, @HPdfPage 
+        x, float 
+        y, float 
+        text, string 
+        endparams
+    proc
+        begin
+            data buf, string
+            page.MoveTo(x, (y - 10))
+            page.LineTo(x, (y + 10))
+            page.MoveTo((x - 10), y)
+            page.LineTo((x + 10), y)
+            page.Stroke()
+            page.SetFontAndSize(page.GetCurrentFont(), 8)
+            page.SetRGBFill(0, 0, 0)
+            page.BeginText()
+            buf = (((("(x=" + %stringtrim(x)) + ",y=") + %stringtrim(y)) + ")")
+            page.MoveTextPos(((x - page.TextWidth(buf)) - 5), (y - 10))
+            page.ShowText(buf)
+            page.EndText()
+            page.BeginText()
+            page.MoveTextPos((x - 20), (y - 25))
+            page.ShowText(text)
+            page.EndText()
+        end
+    endmethod
+
+    public static method Main, void
+        endparams
+    proc
+        begin
+            writes(15,("libhpdf-" + HPdfDoc.HPdfGetVersion()))
+            try
+            begin
+                data pdf, @HPdfDoc, new HPdfDoc()
+                data font, @HPdfFont
+                data page, @HPdfPage
+                data dst, @HPdfDestination
+                data image, @HPdfImage
+                data image1, @HPdfImage
+                data image2, @HPdfImage
+                data image3, @HPdfImage
+                data iw, float
+                data ih, float
+                data x, float
+                data y, float
+                data angle1, float
+                data angle2, float
+                data rad1, float
+                data rad2, float
+                data angle, float
+                data rad, float
+data tan1, float
+data tan2, float
+data cos1, float
+data sin1, float
+.ifndef dblnet
+data fnum, a8
+data rslt, a8
+.endc
+                pdf.SetCompressionMode(HPdfDoc.HPDF_COMP_ALL)
+                font = pdf.GetFont("Helvetica", ^null)
+                page = pdf.AddPage()
+                page.SetWidth(550)
+                page.SetHeight(500)
+                dst = page.CreateDestination()
+                dst.SetXYZ(0, page.GetHeight(), 1)
+                pdf.SetOpenAction(dst)
+                page.BeginText()
+                page.SetFontAndSize(font, 20)
+                page.MoveTextPos(220, (page.GetHeight() - 70))
+                page.ShowText("ImageDemo")
+                page.EndText()
+                image = pdf.LoadPngImageFromFile("basn3p02.png")
+                image1 = pdf.LoadPngImageFromFile("basn3p02.png")
+                image2 = pdf.LoadPngImageFromFile("basn0g01.png")
+                image3 = pdf.LoadPngImageFromFile("maskimage.png")
+                iw = image.GetWidth()
+                ih = image.GetHeight()
+                page.SetLineWidth(0.5)
+                x = 100
+                y = (page.GetHeight() - 150)
+                page.DrawImage(image, x, y, iw, ih)
+                ShowDescription(page, x, y, "Actual Size")
+                x += 150
+                page.DrawImage(image, x, y, (iw * 1.5), ih)
+                ShowDescription(page, x, y, "Scalling image (X direction)")
+                x += 150
+                page.DrawImage(image, x, y, iw, (ih * 1.5))
+                ShowDescription(page, x, y, "Scalling image (Y direction)")
+                x = 100
+                y -= 120
+                angle1 = 10
+                angle2 = 20
+                rad1 = ((angle1 / 180) * 3.141592)
+                rad2 = ((angle2 / 180) * 3.141592)
+                page.GSave()
+.ifndef dblnet
+xcall fp_from_num(fnum, rad1)
+xcall fp_tan(rslt, fnum)
+xcall fp_to_num(rslt, tan1)
+xcall fp_from_num(fnum, rad2)
+xcall fp_tan(rslt, fnum)
+xcall fp_to_num(rslt, tan2)
+.else
+tan1 = Math.Tan(rad1)
+tan2 = Math.Tan(rad2)
+.endc
+                page.Concat(iw, (tan1 * iw), (tan2 * ih), ih, x, y)
+                page.ExecuteXObject(image)
+                page.GRestore()
+                ShowDescription(page, x, y, "Skewing image")
+                x += 150
+                angle = 30
+                rad = ((angle / 180) * 3.141592)
+                page.GSave()
+.ifndef dblnet
+xcall fp_from_num(fnum, rad)
+xcall fp_cos(rslt, fnum)
+xcall fp_to_num(rslt, cos1)
+xcall fp_from_num(fnum, rad)
+xcall fp_sin(rslt, fnum)
+xcall fp_to_num(rslt, sin1)
+.else
+cos1 = Math.Cos(rad)
+sin1 = Math.Sin(rad)
+.endc
+                page.Concat((float)((iw * cos1)), (float)((iw * sin1)), (float)((ih * -sin1)), (float)((ih * cos1)), x, y)
+                page.ExecuteXObject(image)
+                page.GRestore()
+                ShowDescription(page, x, y, "Rotating image")
+                x += 150
+                image1.SetMaskImage(image2)
+                page.SetRGBFill(0, 0, 0)
+                page.BeginText()
+                page.MoveTextPos((x - 6), (y + 14))
+                page.ShowText("MASKMASK")
+                page.EndText()
+                page.DrawImage(image1, (x - 3), (y - 3), (iw + 6), (ih + 6))
+                ShowDescription(page, x, y, "masked image")
+                x = 100
+                y -= 120
+                page.SetRGBFill(0, 0, 0)
+                page.BeginText()
+                page.MoveTextPos((x - 6), (y + 14))
+                page.ShowText("MASKMASK")
+                page.EndText()
+                image3.SetColorMask(0, 255, 0, 0, 0, 255)
+                page.DrawImage(image3, x, y, iw, ih)
+                ShowDescription(page, x, y, "Color Mask")
+                pdf.SaveToFile("ImageDemo.pdf")
+            end
+            catch (e, @Exception)
+            begin
+                writes(15,e.Message)
+            end
+            endtry
+        end
+    endmethod
+
+;   def_font, @HPdfFont, pdf.GetFont("Helvetica", ^null)
+;   tw, float, page.TextWidth(page_title)
+;   i, int, 0
+;   const samp_text, string, "abcdefgABCDEFG12345!#$%&+-@?"
+;   font, @HPdfFont, pdf.GetFont(font_list[i], ^null)
+endclass
+endnamespace
+
+function stringtrim, a
+    value,	n
+    endparams
+record
+    buf,	a64
+    len,	i4
+    dpos,	i4
+proc
+    buf = %string(value)
+    len = %trim(buf)
+    dpos = %instr(1, buf, ".")
+    if (dpos .eq. 0)
+	freturn buf(1:len)
+    while (buf(len:1) .eq. "0") do
+	decr len
+    if (len .eq. dpos)
+	decr len
+    freturn buf(1:len)
+endfunction
+
+;; 
+;;  * << Haru Free PDF Library 2.0.5 >> -- ImageDemo.cs
+;;  *
+;;  * Copyright (c) 1999-2006 Takeshi Kanno <takeshi_kanno@est.hi-ho.ne.jp>
+;;  *
+;;  * Permission to use, copy, modify, distribute and sell this software
+;;  * and its documentation for any purpose is hereby granted without fee,
+;;  * provided that the above copyright notice appear in all copies and
+;;  * that both that copyright notice and this permission notice appear
+;;  * in supporting documentation.
+;;  * It is provided "as is" without express or implied warranty.
+;;  *
+;;  */
+;;  create default-font */
+;;  add a new page object. */
+;;  load image file. */
+;;  image1 is masked by image2. */
+;;  image2 is a mask image. */
+;;  image3 is a RGB-color image. we use this image for color-mask
+;;              * demo.
+;;              */
+;;  Draw image to the canvas. (normal-mode with actual size.)*/
+;;  Scalling image (X direction) */
+;;  Scalling image (Y direction). */
+;;  Skewing image. */
+;;  Rotating image */
+;;  rotation of 30 degrees. */
+;;  Calcurate the radian value. */
+;;  draw masked image. */
+;;  Set image2 to the mask image of image1 */
+;;  color mask. */
+;;  save the document to a file */
+;;  output subtitle. */
+;;  print a label of text */
+;;  print a sample text. */
+
+.main
+;record
+;	hnd,	@ImageDemo
+.proc
+	open(15,o,'tt:')
+	ImageDemo.Main()
+.end

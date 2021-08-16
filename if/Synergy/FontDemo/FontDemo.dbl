@@ -1,0 +1,93 @@
+import System
+.ifdef dblnet
+import System.IO
+.endc
+import HPdf
+
+namespace FontDemo
+
+public class FontDemo
+
+    public static method Main, void
+        endparams
+    proc
+        begin
+            data font_list, [#]string, new string[#] {"Courier", "Courier-Bold", "Courier-Oblique", "Courier-BoldOblique", "Helvetica", "Helvetica-Bold", "Helvetica-Oblique", "Helvetica-BoldOblique", "Times-Roman", "Times-Bold", "Times-Italic", "Times-BoldItalic", "Symbol", "ZapfDingbats"}
+            writes(15,("libhpdf-" + HPdfDoc.HPdfGetVersion()))
+            try
+            begin
+                data page_title, string
+                data pdf, @HPdfDoc, new HPdfDoc()
+                data page, @HPdfPage, pdf.AddPage()
+                data height, float, page.GetHeight()
+                data width, float, page.GetWidth()
+                data def_font, @HPdfFont
+                data tw, float
+                data i, int
+                page_title = "FontDemo"
+                page.SetLineWidth(1)
+                page.Rectangle(50, 50, (width - 100), (height - 110))
+                page.Stroke()
+                def_font = pdf.GetFont("Helvetica", ^null)
+                page.SetFontAndSize(def_font, 24)
+                tw = page.TextWidth(page_title)
+                page.BeginText()
+                page.TextOut((((width - tw)) / 2), (height - 50), page_title)
+                page.EndText()
+                page.BeginText()
+                page.SetFontAndSize(def_font, 16)
+                page.TextOut(60, (height - 80), "<Standard Type1 fonts samples>")
+                page.EndText()
+                page.BeginText()
+                page.MoveTextPos(60, (height - 105))
+                for i from 1 thru font_list.Length
+                begin
+                    data samp_text, string
+                    data font, @HPdfFont, pdf.GetFont(font_list[i], ^null)
+                    samp_text = "abcdefgABCDEFG12345!#$%&+-@?"
+                    page.SetFontAndSize(def_font, 9)
+                    page.ShowText(font_list[i])
+                    page.MoveTextPos(0, -18)
+                    page.SetFontAndSize(font, 20)
+                    page.ShowText(samp_text)
+                    page.MoveTextPos(0, -20)
+                end
+                page.EndText()
+                pdf.SaveToFile("FontDemo.pdf")
+            end
+            catch (e, @Exception)
+            begin
+                writes(15,e.Message)
+		stop
+            end
+            endtry
+        end
+    endmethod
+endclass
+endnamespace
+;; 
+;;  * << Haru Free PDF Library 2.0.5 >> -- FontDemo.cs
+;;  *
+;;  * Copyright (c) 1999-2006 Takeshi Kanno <takeshi_kanno@est.hi-ho.ne.jp>
+;;  *
+;;  * Permission to use, copy, modify, distribute and sell this software
+;;  * and its documentation for any purpose is hereby granted without fee,
+;;  * provided that the above copyright notice appear in all copies and
+;;  * that both that copyright notice and this permission notice appear
+;;  * in supporting documentation.
+;;  * It is provided "as is" without express or implied warranty.
+;;  *
+;;  */
+;;  Print the lines of the page. */
+;;  Print the title of the page (with positioning center). */
+;;  output subtitle. */
+;;  print a label of text */
+;;  print a sample text. */
+
+.main
+;record
+;	hnd,	@FontDemo
+.proc
+	open(15,o,'tt:')
+	FontDemo.Main()
+.end
